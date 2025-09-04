@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { initDb, closeDb } from './db.js';
-import router from './routes.js';
+import { initDb, closeDb } from './db';
+import router from './routes';
 
 const app = express();
 const PORT = 3001;
@@ -23,14 +23,14 @@ const startServer = async () => {
   try {
     // 初始化数据库
     await initDb();
-    
+
     // 启动服务器，监听所有网络接口，允许其他机器访问
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
       console.log(`本地访问地址: http://localhost:${PORT}`);
       console.log(`局域网访问地址: http://192.168.22.40:${PORT}`);
     });
-    
+
     // 优雅关闭
     process.on('SIGINT', async () => {
       await closeDb();

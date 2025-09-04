@@ -3,7 +3,7 @@ import initialBookings from '@/data/bookings.json';
 import { toast } from 'sonner';
 
 // API 基础URL
-// 使用相对路径，避免硬编码IP地址
+// 使用localhost，确保在不同环境下都能连接
 const API_BASE_URL = 'http://192.168.22.40:3001/api';
 
 // In-memory storage for bookings
@@ -69,12 +69,12 @@ export const initializeBookings = async (): Promise<void> => {
   // 防止重复初始化
   if (isInitializing) return;
 
-  isInitializing = true;
+
   try {
     // 尝试从后端API加载数据
     const fetchedBookings = await apiRequest<Booking[]>('/bookings');
 
-    if (fetchedBookings && fetchedBookings.length > 0) {
+    if (fetchedBookings && fetchedBookings.length >= 0) {
       // Convert string dates back to Date objects
       bookings = fetchedBookings.map((booking: any) => ({
         ...booking,
@@ -99,6 +99,7 @@ export const initializeBookings = async (): Promise<void> => {
         }
       }
     }
+    isInitializing = true;
   } catch (error) {
     console.error('初始化会议预定时出错:', error);
     // 降级到本地初始数据

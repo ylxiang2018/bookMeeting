@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { Booking } from '@/types';
 import { MeetingRoom } from '@/types';
 import { getToday } from '@/lib/dateUtils';
 import { importBookingsFromJson, loadBookings, initializeBookings, loadBookingsAsync, setOnBookingsUpdate } from '@/lib/storageUtils';
@@ -17,6 +18,7 @@ const MEETING_ROOMS: MeetingRoom[] = [
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string>(getToday());
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedRoom, setSelectedRoom] = useState<MeetingRoom | null>(null);
   const [timeSlots, setTimeSlots] = useState([]);
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
@@ -33,13 +35,20 @@ export default function Home() {
   useEffect(() => {
     const initBookings = async () => {
       // 使用loadBookingsAsync确保数据已加载完成
-      const allBookings = await loadBookingsAsync();
-      setBookings(allBookings);
+      try {
+        const allBookings = await loadBookingsAsync();
+        setBookings(allBookings);
 
-      // 设置预订更新回调
-      setOnBookingsUpdate((updatedBookings) => {
-        setBookings(updatedBookings);
-      });
+        // 设置预订更新回调
+        setOnBookingsUpdate((updatedBookings) => {
+          setBookings(updatedBookings);
+        });
+        setLoading(true);
+      } catch (error) {
+        console.error('初始化预订数据失败:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     initBookings();
   }, []);
@@ -87,15 +96,24 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {MEETING_ROOMS.map((room) => (
-            <RoomCard
-              key={room.id}
-              room={room}
-              date={selectedDate}
-              onBookingUpdated={handleBookingUpdated}
-              onOpenBookingModal={handleOpenBookingModal}
-            />
-          ))}
+          {loading ? (
+            <div className="col-span-full flex justify-center items-center h-64">
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                <p className="text-gray-600">加载会议数据中...</p>
+              </div>
+            </div>
+          ) : (
+            MEETING_ROOMS.map((room) => (
+              <RoomCard
+                key={room.id}
+                room={room}
+                date={selectedDate}
+                onBookingUpdated={handleBookingUpdated}
+                onOpenBookingModal={handleOpenBookingModal}
+              />
+            ))
+          )}
         </div>
       </div>
 

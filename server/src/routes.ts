@@ -6,8 +6,8 @@ import {
   createBooking,
   updateBooking,
   deleteBooking
-} from './db.js';
-import { Booking } from './types.js';
+} from './db';
+import { Booking } from './types';
 
 const router = express.Router();
 
