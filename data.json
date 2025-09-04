@@ -1,0 +1,40 @@
+{
+  "bookings": [
+    {
+      "id": "initial-1",
+      "roomId": "room-1",
+      "date": "2025-08-26",
+      "startTime": "10:00",
+      "endTime": "12:00",
+      "title": "产品规划会议",
+      "organizer": "张三",
+      "createdAt": "2025-08-25T14:30:00.000Z",
+      "participantNames": "李四,王五",
+      "ipAddress": "192.168.22.40"
+    },
+    {
+      "id": "initial-2",
+      "roomId": "room-2",
+      "date": "2025-08-26",
+      "startTime": "14:00",
+      "endTime": "15:30",
+      "title": "技术评审",
+      "organizer": "赵六",
+      "createdAt": "2025-08-25T16:45:00.000Z",
+      "participantNames": "钱七,孙八",
+      "ipAddress": "192.168.22.40"
+    },
+    {
+      "id": "f2bca6fe-796f-424d-bfad-a1971a70a8c4",
+      "roomId": "room-1",
+      "date": "2025-09-04",
+      "startTime": "10:00",
+      "endTime": "12:00",
+      "title": "测试会议",
+      "organizer": "更生",
+      "participantNames": "",
+      "createdAt": "2025-09-04T06:34:27.080Z",
+      "ipAddress": "192.168.20.89"
+    }
+  ]
+}
