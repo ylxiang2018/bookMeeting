@@ -65,6 +65,7 @@ export const generateTimeSlots = (
 };
 
 // Check if a time slot is available for booking
+// Allows a booking to end exactly when another booking starts
 export const isTimeSlotAvailable = (
   bookings: Booking[], 
   roomId: string, 
@@ -76,7 +77,7 @@ export const isTimeSlotAvailable = (
     booking.roomId === roomId && 
     booking.date === date && 
     !( 
-      booking.endTime < startTime || 
+      booking.endTime <= startTime || 
       booking.startTime >= endTime
     )
   );

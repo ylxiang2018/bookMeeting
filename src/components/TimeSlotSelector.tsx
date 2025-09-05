@@ -34,32 +34,32 @@ export default function TimeSlotSelector({
   };
 
   // Check for booking conflicts
-  // Allows overlapping only if one meeting ends exactly when the other starts
-  const checkConflict = (startTime: string, endTime: string): boolean => {
-    const startMinutes = timeToMinutes(startTime);
-    const endMinutes = timeToMinutes(endTime);
+// Allows overlapping only if one meeting ends exactly when the other starts
+const checkConflict = (startTime: string, endTime: string): boolean => {
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
 
-    return bookings.some(booking =>
-      booking.roomId === roomId &&
-      booking.date === date &&
-      // Strictly overlapping (not allowing exact start/end matching)
-      startMinutes < timeToMinutes(booking.endTime) &&
-      endMinutes > timeToMinutes(booking.startTime)
-    );
-  };
+  return bookings.some(booking =>
+    booking.roomId === roomId &&
+    booking.date === date &&
+    // Allow booking to end exactly when another booking starts
+    startMinutes < timeToMinutes(booking.endTime) &&
+    endMinutes > timeToMinutes(booking.startTime)
+  );
+};
 
   // Filter available time slots and reset state
   useEffect(() => {
-    // Get all available slots from the input
-    const availableSlots = slots.filter(slot => slot.available).map(slot => slot.time);
+    // Get all time slots (both available and booked)
+    const allSlots = slots.map(slot => slot.time);
     
     // Get all booking end times for the current room and date
     const bookingEndTimes = bookings
       .filter(booking => booking.roomId === roomId && booking.date === date)
       .map(booking => booking.endTime);
     
-    // Add booking end times to available start times if not already present
-    const updatedAvailableStartTimes = [...new Set([...availableSlots, ...bookingEndTimes])];
+    // Combine all slots and booking end times, then remove duplicates
+    const updatedAvailableStartTimes = [...new Set([...allSlots, ...bookingEndTimes])];
     
     // Sort the available start times
     updatedAvailableStartTimes.sort((a, b) => timeToMinutes(a) - timeToMinutes(b));

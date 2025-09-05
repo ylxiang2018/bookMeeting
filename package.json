@@ -8,6 +8,7 @@
     "dev:client:3002": "vite --host --port 3002",
     "dev:client:both": "concurrently \"npm run dev:client\" \"npm run dev:client:3002\"",
     "dev": "npm run dev:client",
+    "dev2": "npm run dev:client:3002",
     "build:client": "vite build --outDir dist/static",
     "build": "if exist dist rd /s /q dist && npm run build:client && copy package.json dist && type nul > dist/build.flag",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.json",
@@ -49,7 +50,7 @@
     "vite": "^6.2.0",
     "vite-tsconfig-paths": "^5.1.4"
   },
-    "config": {
+  "config": {
     "commitizen": {
       "path": "git-cz"
     }
