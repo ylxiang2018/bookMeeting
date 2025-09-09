@@ -5,9 +5,10 @@ import {
   getBookingsByRoomAndDate,
   createBooking,
   updateBooking,
-  deleteBooking
-} from './db';
-import { Booking } from './types';
+  deleteBooking,
+} from './db.js';
+import { Booking, LoginRequest, ChangePasswordRequest } from './types.js';
+import { login, changePassword } from './auth.js';
 
 const router = express.Router();
 
@@ -21,8 +22,75 @@ const getUserIp = (req: express.Request): string => {
   }
   // 直接从请求对象获取IP
   return req.ip || 'unknown';
-}
-router.get('/bookings', async (req, res) => {
+};
+
+// 用户登录路由
+router.post('/login', async(req, res) => {
+  try {
+    const credentials: LoginRequest = req.body;
+
+    // 验证输入
+    if (!credentials.username || !credentials.password) {
+      return res.status(400).json({
+        success: false,
+        message: '用户名和密码不能为空',
+      });
+    }
+
+    const result = await login(credentials);
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(401).json(result);
+    }
+  } catch (error) {
+    console.error('登录失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '登录失败，请稍后重试',
+    });
+  }
+});
+
+// 修改密码路由
+router.post('/change-password', async(req, res) => {
+  try {
+    const request: ChangePasswordRequest = req.body;
+
+    // 验证输入
+    if (!request.username || !request.currentPassword || !request.newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: '请填写完整的密码修改信息',
+      });
+    }
+
+    const result = await changePassword(request);
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error('修改密码失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '修改密码失败，请稍后重试',
+    });
+  }
+});
+
+// 退出登录路由（前端主要通过清除localStorage实现）
+router.post('/logout', (req, res) => {
+  // 服务器端不需要特殊处理，返回成功
+  res.json({
+    success: true,
+    message: '退出登录成功',
+  });
+});
+router.get('/bookings', async(req, res) => {
   try {
     const bookings = await getAllBookings();
     res.json(bookings);
@@ -33,7 +101,7 @@ router.get('/bookings', async (req, res) => {
 });
 
 // 根据会议室ID和日期获取会议预定
-router.get('/bookings/room/:roomId/date/:date', async (req, res) => {
+router.get('/bookings/room/:roomId/date/:date', async(req, res) => {
   try {
     const { roomId, date } = req.params;
     const bookings = await getBookingsByRoomAndDate(roomId, date);
@@ -45,26 +113,26 @@ router.get('/bookings/room/:roomId/date/:date', async (req, res) => {
 });
 
 // 创建新的会议预定
-router.post('/bookings', async (req, res) => {
+router.post('/bookings', async(req, res) => {
   try {
     const booking: Booking = req.body;
-    
+
     // 检查必要字段
     if (!booking.id || !booking.roomId || !booking.date || !booking.startTime || !booking.endTime || !booking.title || !booking.organizer) {
       return res.status(400).json({ error: '缺少必要的会议预定信息' });
     }
-    
+
     // 确保有创建时间
     if (!booking.createdAt) {
       booking.createdAt = new Date();
     } else if (typeof booking.createdAt === 'string') {
       booking.createdAt = new Date(booking.createdAt);
     }
-    
+
     // 添加用户IP地址
     booking.ipAddress = getUserIp(req);
     console.log(`用户 ${booking.organizer} (IP: ${booking.ipAddress}) 创建了会议预定: ${booking.title}`);
-    
+
     const createdBooking = await createBooking(booking);
     res.status(201).json(createdBooking);
   } catch (error) {
@@ -74,25 +142,25 @@ router.post('/bookings', async (req, res) => {
 });
 
 // 更新会议预定
-router.put('/bookings/:id', async (req, res) => {
+router.put('/bookings/:id', async(req, res) => {
   try {
     const { id } = req.params;
     const updatedBooking: Booking = req.body;
-    
+
     // 检查必要字段
     if (!updatedBooking.roomId || !updatedBooking.date || !updatedBooking.startTime || !updatedBooking.endTime || !updatedBooking.title || !updatedBooking.organizer) {
       return res.status(400).json({ error: '缺少必要的会议预定信息' });
     }
-    
+
     // 确保ID一致
     updatedBooking.id = id;
-    
+
     const result = await updateBooking(id, updatedBooking);
-    
+
     if (!result) {
       return res.status(404).json({ error: '未找到会议预定' });
     }
-    
+
     res.json(result);
   } catch (error) {
     console.error('更新会议预定失败:', error);
@@ -101,28 +169,28 @@ router.put('/bookings/:id', async (req, res) => {
 });
 
 // 删除会议预定
-router.delete('/bookings/:id', async (req, res) => {
+router.delete('/bookings/:id', async(req, res) => {
   try {
     const { id } = req.params;
     const userIp = getUserIp(req);
-    
+
     // 先获取要删除的预订信息用于日志记录
     const bookings = await getAllBookings();
     const bookingToDelete = bookings.find(b => b.id === id);
-    
+
     const result = await deleteBooking(id);
-    
+
     if (!result) {
       return res.status(404).json({ error: '未找到会议预定' });
     }
-    
+
     // 记录删除操作的IP
     if (bookingToDelete) {
       console.log(`用户 (IP: ${userIp}) 删除了会议预定: ${bookingToDelete.title} (ID: ${id})`);
     } else {
       console.log(`用户 (IP: ${userIp}) 删除了会议预定 (ID: ${id})`);
     }
-    
+
     res.status(204).send();
   } catch (error) {
     console.error('删除会议预定失败:', error);

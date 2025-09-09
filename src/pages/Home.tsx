@@ -1,19 +1,26 @@
 import { useState, useEffect, useContext } from 'react';
-import { Booking } from '@/types';
 import { MeetingRoom } from '@/types';
 import { getToday } from '@/lib/dateUtils';
-import { importBookingsFromJson, loadBookings, initializeBookings, loadBookingsAsync, setOnBookingsUpdate } from '@/lib/storageUtils';
+import {  loadBookingsAsync, setOnBookingsUpdate } from '@/lib/storageUtils';
 import DateSelector from '@/components/DateSelector';
 import RoomCard from '@/components/RoomCard';
 import TimeSlotSelector from '@/components/TimeSlotSelector';
 import BookingForm from '@/components/BookingForm';
-import { BookingContext } from '../contexts/bookingContext.jsx';
+import { BookingContext } from '../contexts/bookingContext';
+import { AuthContext } from '@/contexts/authContext';
+import { useNavigate } from 'react-router-dom';
 
 // Mock data for meeting rooms
 const MEETING_ROOMS: MeetingRoom[] = [
-  { id: 'room-1', name: '2204会议室', capacity: 10, amenities: [], imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Modern%20meeting%20room%20with%20large%20table%20and%20comfortable%20chairs&sign=1683ab84905037977a19a661658b4e9a' },
-  { id: 'room-2', name: '2208会议室', capacity: 10, amenities: [], imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Collaborative%20meeting%20room%20with%20whiteboard%20and%20comfortable%20seating&sign=f0181b3976d89630cf57e2a281d98702' },
-  { id: 'room-3', name: '2209会议室', capacity: 10, amenities: [], imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Small%20meeting%20room%20with%20comfortable%20seating%20and%20modern%20equipment&sign=241c1001a0389b14f1dbce3706fc7acf' }
+  {
+    id: 'room-1', name: '2204会议室', capacity: 10, amenities: [], imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Modern%20meeting%20room%20with%20large%20table%20and%20comfortable%20chairs&sign=1683ab84905037977a19a661658b4e9a',
+  },
+  {
+    id: 'room-2', name: '2208会议室', capacity: 10, amenities: [], imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Collaborative%20meeting%20room%20with%20whiteboard%20and%20comfortable%20seating&sign=f0181b3976d89630cf57e2a281d98702',
+  },
+  {
+    id: 'room-3', name: '2209会议室', capacity: 10, amenities: [], imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=landscape_16_9&prompt=Small%20meeting%20room%20with%20comfortable%20seating%20and%20modern%20equipment&sign=241c1001a0389b14f1dbce3706fc7acf',
+  },
 ];
 
 export default function Home() {
@@ -24,16 +31,15 @@ export default function Home() {
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState<{ start: string; end: string } | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const { bookings: allBookings, setBookings } = useContext(BookingContext);
-
-  // 过滤出与现有会议室匹配的预订
-  const validRoomIds = new Set(MEETING_ROOMS.map(room => room.id));
-  const bookings = allBookings.filter(booking => validRoomIds.has(booking.roomId));
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   // 组件挂载时初始化
   useEffect(() => {
-    const initBookings = async () => {
+    const initBookings = async() => {
       // 使用loadBookingsAsync确保数据已加载完成
       try {
         const allBookings = await loadBookingsAsync();
@@ -80,12 +86,74 @@ export default function Home() {
     handleBookingUpdated();
   };
 
+  const handleChangePassword = () => {
+    navigate('/change-password');
+    setShowUserMenu(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">会议室预定系统</h1>
-          <p className="text-gray-600">便捷地预定和管理会议室资源</p>
+        <header className="mb-8">
+          {/* 用户信息和下拉菜单 */}
+          {user && (
+            <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
+              <div className="relative inline-block">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  onMouseEnter={() => setShowUserMenu(true)}
+                  onMouseLeave={() => {
+                    // 使用setTimeout延迟关闭，以便用户可以移动到下拉菜单
+                    setTimeout(() => {
+                      const menuElement = document.getElementById('user-menu');
+                      if (!menuElement?.matches(':hover')) {
+                        setShowUserMenu(false);
+                      }
+                    }, 200);
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                >
+                  <i className="fa-solid fa-user text-gray-600"></i>
+                  <span className="text-gray-800 font-medium">{user.username}</span>
+                  <i className={`fa-solid fa-chevron-down text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`}></i>
+                </button>
+
+                {/* 下拉菜单 */}
+                {showUserMenu && (
+                  <div
+                    id="user-menu"
+                    className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10"
+                    onMouseEnter={() => setShowUserMenu(true)}
+                    onMouseLeave={() => setShowUserMenu(false)}
+                  >
+                    <button
+                      onClick={handleChangePassword}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      <i className="fa-solid fa-key mr-2 text-gray-500"></i>修改密码
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      <i className="fa-solid fa-sign-out-alt mr-2 text-gray-500"></i>退出登录
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 页面标题 */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">会议室预定系统</h1>
+            <p className="text-gray-600">便捷地预定和管理会议室资源</p>
+          </div>
         </header>
 
         <div className="mb-8">
@@ -128,7 +196,7 @@ export default function Home() {
                   onClick={() => setShowTimeSlotModal(false)}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <i class="fa-solid fa-times"></i>
+                  <i className="fa-solid fa-times"></i>
                 </button>
               </div>
 

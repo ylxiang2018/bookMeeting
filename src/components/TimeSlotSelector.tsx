@@ -1,8 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
-import { TimeSlot, Booking } from '@/types';
+import { TimeSlot } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { BookingContext } from '../contexts/bookingContext.jsx';
+import { BookingContext } from '../contexts/bookingContext';
 
 interface TimeSlotSelectorProps {
   slots: TimeSlot[];
@@ -17,7 +17,7 @@ export default function TimeSlotSelector({
   onSelect,
   roomId,
   date,
-  disabled = false
+  disabled = false,
 }: TimeSlotSelectorProps) {
   const { bookings } = useContext(BookingContext);
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
@@ -34,36 +34,34 @@ export default function TimeSlotSelector({
   };
 
   // Check for booking conflicts
-// Allows overlapping only if one meeting ends exactly when the other starts
-const checkConflict = (startTime: string, endTime: string): boolean => {
-  const startMinutes = timeToMinutes(startTime);
-  const endMinutes = timeToMinutes(endTime);
+  // Allows overlapping only if one meeting ends exactly when the other starts
+  const checkConflict = (startTime: string, endTime: string): boolean => {
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
 
-  return bookings.some(booking =>
-    booking.roomId === roomId &&
-    booking.date === date &&
+    return bookings.some(booking => booking.roomId === roomId
+    && booking.date === date
     // Allow booking to end exactly when another booking starts
-    startMinutes < timeToMinutes(booking.endTime) &&
-    endMinutes > timeToMinutes(booking.startTime)
-  );
-};
+    && startMinutes < timeToMinutes(booking.endTime)
+    && endMinutes > timeToMinutes(booking.startTime));
+  };
 
   // Filter available time slots and reset state
   useEffect(() => {
     // Get all time slots (both available and booked)
     const allSlots = slots.map(slot => slot.time);
-    
+
     // Get all booking end times for the current room and date
     const bookingEndTimes = bookings
       .filter(booking => booking.roomId === roomId && booking.date === date)
       .map(booking => booking.endTime);
-    
+
     // Combine all slots and booking end times, then remove duplicates
     const updatedAvailableStartTimes = [...new Set([...allSlots, ...bookingEndTimes])];
-    
+
     // Sort the available start times
     updatedAvailableStartTimes.sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
-    
+
     setAvailableStartTimes(updatedAvailableStartTimes);
     setAvailableEndTimes([]);
     setSelectedStartTime(null);
@@ -76,9 +74,7 @@ const checkConflict = (startTime: string, endTime: string): boolean => {
   useEffect(() => {
     if (selectedStartTime) {
       const startMinutes = timeToMinutes(selectedStartTime);
-      const validEndTimes = availableStartTimes.filter(time =>
-        timeToMinutes(time) > startMinutes
-      );
+      const validEndTimes = availableStartTimes.filter(time => timeToMinutes(time) > startMinutes);
       setAvailableEndTimes(validEndTimes);
       setSelectedEndTime(null);
     } else {
@@ -194,14 +190,14 @@ const checkConflict = (startTime: string, endTime: string): boolean => {
               <div
                 key={index}
                 className={cn(
-                  "py-2 text-sm rounded-lg transition-all duration-200 text-center border",
+                  'py-2 text-sm rounded-lg transition-all duration-200 text-center border',
                   !slot.available
-                    ? "bg-gray-100 text-gray-400 border-gray-300"
+                    ? 'bg-gray-100 text-gray-400 border-gray-300'
                     : isSelectionEdge(slot)
-                      ? "bg-blue-600 text-white font-medium border-transparent shadow-sm"
+                      ? 'bg-blue-600 text-white font-medium border-transparent shadow-sm'
                       : isInSelectedRange(slot)
-                        ? "bg-blue-100 text-blue-700 border-blue-200"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                        ? 'bg-blue-100 text-blue-700 border-blue-200'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50',
                 )}
               >
                 {slot.time}

@@ -12,7 +12,7 @@ const __dirname = dirname(__filename);
 const DATA_FILE = path.join(__dirname, '../../data.json');
 
 // 初始化数据存储
-export const initDb = async (): Promise<void> => {
+export const initDb = async(): Promise<void> => {
   try {
     // 检查数据文件是否存在
     await fs.access(DATA_FILE);
@@ -23,7 +23,7 @@ export const initDb = async (): Promise<void> => {
 };
 
 // 读取数据
-export const readData = async (): Promise<{ bookings: Booking[] }> => {
+export const readData = async(): Promise<{ bookings: Booking[] }> => {
   try {
     const data = await fs.readFile(DATA_FILE, 'utf8');
     return JSON.parse(data);
@@ -34,7 +34,7 @@ export const readData = async (): Promise<{ bookings: Booking[] }> => {
 };
 
 // 写入数据
-export const writeData = async (data: { bookings: Booking[] }): Promise<void> => {
+export const writeData = async(data: { bookings: Booking[] }): Promise<void> => {
   try {
     await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
   } catch (error) {
@@ -44,24 +44,24 @@ export const writeData = async (data: { bookings: Booking[] }): Promise<void> =>
 };
 
 // 获取所有会议预定
-export const getAllBookings = async (): Promise<Booking[]> => {
+export const getAllBookings = async(): Promise<Booking[]> => {
   const data = await readData();
   return data.bookings;
 };
 
 // 根据会议室ID和日期获取会议预定
-export const getBookingsByRoomAndDate = async (
+export const getBookingsByRoomAndDate = async(
   roomId: string,
-  date: string
+  date: string,
 ): Promise<Booking[]> => {
   const data = await readData();
   return data.bookings.filter(
-    booking => booking.roomId === roomId && booking.date === date
+    booking => booking.roomId === roomId && booking.date === date,
   );
 };
 
 // 创建新的会议预定
-export const createBooking = async (booking: Booking): Promise<Booking> => {
+export const createBooking = async(booking: Booking): Promise<Booking> => {
   const data = await readData();
   data.bookings.push(booking);
   await writeData(data);
@@ -69,38 +69,38 @@ export const createBooking = async (booking: Booking): Promise<Booking> => {
 };
 
 // 更新会议预定
-export const updateBooking = async (
+export const updateBooking = async(
   id: string,
-  updatedBooking: Booking
+  updatedBooking: Booking,
 ): Promise<Booking | null> => {
   const data = await readData();
   const index = data.bookings.findIndex(booking => booking.id === id);
-  
+
   if (index === -1) {
     return null;
   }
-  
+
   data.bookings[index] = updatedBooking;
   await writeData(data);
   return updatedBooking;
 };
 
 // 删除会议预定
-export const deleteBooking = async (id: string): Promise<boolean> => {
+export const deleteBooking = async(id: string): Promise<boolean> => {
   const data = await readData();
   const initialLength = data.bookings.length;
   data.bookings = data.bookings.filter(booking => booking.id !== id);
-  
+
   if (data.bookings.length === initialLength) {
     return false; // 没有找到要删除的预定
   }
-  
+
   await writeData(data);
   return true;
 };
 
 // 关闭数据库连接（文件存储不需要真正关闭）
-export const closeDb = async (): Promise<void> => {
+export const closeDb = async(): Promise<void> => {
   // 文件存储不需要特殊的关闭操作
   return;
 };

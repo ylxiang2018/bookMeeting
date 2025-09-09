@@ -10,8 +10,11 @@ interface FileSystem {
 // 使用IndexedDB实现的文件系统
 class IndexedDBFileSystem implements FileSystem {
   private dbName = 'meetingRoomDB';
+
   private storeName = 'files';
+
   private version = 1;
+
   private db: IDBDatabase | null = null;
 
   // 打开数据库连接
@@ -99,11 +102,11 @@ class IndexedDBFileSystem implements FileSystem {
 export const fileSystem = new IndexedDBFileSystem();
 
 // 导出便捷的文件操作函数
-export const readJsonFile = async (path: string): Promise<any> => {
+export const readJsonFile = async(path: string): Promise<any> => {
   const content = await fileSystem.readFile(path);
   return content || []; // 如果文件不存在，返回空数组
 };
 
-export const writeJsonFile = async (path: string, data: any): Promise<void> => {
+export const writeJsonFile = async(path: string, data: any): Promise<void> => {
   await fileSystem.writeFile(path, data);
 };

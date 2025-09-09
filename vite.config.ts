@@ -2,9 +2,9 @@
 /** WARNING: DON'T EDIT THIS FILE */
 /** WARNING: DON'T EDIT THIS FILE */
 
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 function getPlugins() {
   const plugins = [react(), tsconfigPaths()];
@@ -15,7 +15,7 @@ export default defineConfig({
   plugins: getPlugins(),
   // 配置HTML选项，保留原始标题
   html: {
-    title: '会议预定'
+    title: '会议预定',
   },
   // 添加API代理配置
   server: {
@@ -23,8 +23,8 @@ export default defineConfig({
       '/api': {
         target: 'http://192.168.22.40:3001',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
-  }
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 });

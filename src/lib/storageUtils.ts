@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 // API 基础URL
 // 使用localhost，确保在不同环境下都能连接
-const API_BASE_URL = 'http://192.168.22.40:3001/api';
+export const API_BASE_URL = 'http://192.168.22.40:3001/api';
 
 // In-memory storage for bookings
 let bookings: Booking[] = [];
@@ -15,29 +15,27 @@ let onBookingsUpdate: (bookings: Booking[]) => void = () => { };
 
 export const setOnBookingsUpdate = (callback: (bookings: Booking[]) => void) => {
   onBookingsUpdate = callback;
-}
+};
 
 // Get all bookings
 export const getBookings = (): Booking[] => {
   return [...bookings]; // Return a copy to prevent direct mutation
-}
+};
 
 // 检查预订冲突
 // 允许会议时间头尾重叠（即一个会议结束时另一个会议开始）
 export const checkBookingConflict = (newBooking: Booking): boolean => {
-  return bookings.some(booking =>
-    booking.roomId === newBooking.roomId &&
-    booking.date === newBooking.date &&
+  return bookings.some(booking => booking.roomId === newBooking.roomId
+    && booking.date === newBooking.date
     // 严格重叠（不允许完全匹配的开始/结束时间）
-    newBooking.startTime < booking.endTime && newBooking.endTime > booking.startTime
-  );
-}
+    && newBooking.startTime < booking.endTime && newBooking.endTime > booking.startTime);
+};
 
 // 通用API请求函数
 const apiRequest = async <T>(
   endpoint: string,
   method: string = 'GET',
-  body?: any
+  body?: any,
 ): Promise<T> => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -65,10 +63,9 @@ const apiRequest = async <T>(
 };
 
 // Initialize bookings from backend API
-export const initializeBookings = async (): Promise<void> => {
+export const initializeBookings = async(): Promise<void> => {
   // 防止重复初始化
   if (isInitializing) return;
-
 
   try {
     // 尝试从后端API加载数据
@@ -78,13 +75,13 @@ export const initializeBookings = async (): Promise<void> => {
       // Convert string dates back to Date objects
       bookings = fetchedBookings.map((booking: any) => ({
         ...booking,
-        createdAt: new Date(booking.createdAt)
+        createdAt: new Date(booking.createdAt),
       }));
     } else {
       // 初始化默认数据
       bookings = initialBookings.map((booking: any) => ({
         ...booking,
-        createdAt: new Date(booking.createdAt)
+        createdAt: new Date(booking.createdAt),
       }));
 
       // 将初始数据保存到后端
@@ -92,7 +89,7 @@ export const initializeBookings = async (): Promise<void> => {
         try {
           await apiRequest('/bookings', 'POST', {
             ...booking,
-            createdAt: booking.createdAt.toISOString()
+            createdAt: booking.createdAt.toISOString(),
           });
         } catch (error) {
           console.error('保存初始数据失败:', error);
@@ -105,7 +102,7 @@ export const initializeBookings = async (): Promise<void> => {
     // 降级到本地初始数据
     bookings = initialBookings.map((booking: any) => ({
       ...booking,
-      createdAt: new Date(booking.createdAt)
+      createdAt: new Date(booking.createdAt),
     }));
     toast.error('连接后端服务失败，使用本地数据');
   } finally {
@@ -119,7 +116,7 @@ export const initializeBookingsSync = (): void => {
 };
 
 // Get all bookings (async version)
-export const loadBookingsAsync = async (): Promise<Booking[]> => {
+export const loadBookingsAsync = async(): Promise<Booking[]> => {
   if (bookings.length === 0) {
     await initializeBookings();
   } else {
@@ -128,7 +125,7 @@ export const loadBookingsAsync = async (): Promise<Booking[]> => {
       const fetchedBookings = await apiRequest<Booking[]>('/bookings');
       bookings = fetchedBookings.map((booking: any) => ({
         ...booking,
-        createdAt: new Date(booking.createdAt)
+        createdAt: new Date(booking.createdAt),
       }));
     } catch (error) {
       console.error('刷新数据失败，使用缓存数据:', error);
@@ -149,7 +146,7 @@ export const loadBookings = (): Booking[] => {
 export const importBookingsFromJson = (file: File): Promise<void> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = async(e) => {
       try {
         const content = e.target?.result as string;
         const importedBookings = JSON.parse(content) as Booking[];
@@ -158,16 +155,14 @@ export const importBookingsFromJson = (file: File): Promise<void> => {
         if (Array.isArray(importedBookings)) {
           // 清除现有数据
           await Promise.all(
-            bookings.map(booking =>
-              apiRequest(`/bookings/${booking.id}`, 'DELETE').catch(() => { })
-            )
+            bookings.map(booking => apiRequest(`/bookings/${booking.id}`, 'DELETE').catch(() => { })),
           );
 
           // 导入新数据
           for (const booking of importedBookings) {
             const formattedBooking = {
               ...booking,
-              createdAt: new Date(booking.createdAt).toISOString()
+              createdAt: new Date(booking.createdAt).toISOString(),
             };
             await apiRequest('/bookings', 'POST', formattedBooking);
           }
@@ -190,7 +185,7 @@ export const importBookingsFromJson = (file: File): Promise<void> => {
 };
 
 // Add a new booking (async version)
-export const addBookingAsync = async (newBooking: Booking): Promise<Booking[]> => {
+export const addBookingAsync = async(newBooking: Booking): Promise<Booking[]> => {
   try {
     // 检查预订冲突
     if (checkBookingConflict(newBooking)) {
@@ -200,13 +195,13 @@ export const addBookingAsync = async (newBooking: Booking): Promise<Booking[]> =
 
     const createdBooking = await apiRequest<Booking>('/bookings', 'POST', {
       ...newBooking,
-      createdAt: newBooking.createdAt.toISOString()
+      createdAt: newBooking.createdAt.toISOString(),
     });
 
     // 更新本地缓存
     bookings = [...bookings, {
       ...createdBooking,
-      createdAt: new Date(createdBooking.createdAt)
+      createdAt: new Date(createdBooking.createdAt),
     }];
 
     // 通知订阅者
@@ -240,24 +235,22 @@ export const addBooking = (newBooking: Booking): Booking[] => {
 };
 
 // Update an existing booking (async version)
-export const updateBookingAsync = async (updatedBooking: Booking): Promise<Booking[]> => {
+export const updateBookingAsync = async(updatedBooking: Booking): Promise<Booking[]> => {
   try {
     const result = await apiRequest<Booking>(
       `/bookings/${updatedBooking.id}`,
       'PUT',
       {
         ...updatedBooking,
-        createdAt: updatedBooking.createdAt.toISOString()
-      }
+        createdAt: updatedBooking.createdAt.toISOString(),
+      },
     );
 
     // 更新本地缓存
-    bookings = bookings.map(booking =>
-      booking.id === updatedBooking.id ? {
-        ...result,
-        createdAt: new Date(result.createdAt)
-      } : booking
-    );
+    bookings = bookings.map(booking => booking.id === updatedBooking.id ? {
+      ...result,
+      createdAt: new Date(result.createdAt),
+    } : booking);
 
     // 通知订阅者
     onBookingsUpdate([...bookings]);
@@ -274,9 +267,7 @@ export const updateBookingAsync = async (updatedBooking: Booking): Promise<Booki
 // 同步版本的更新函数，用于向后兼容
 export const updateBooking = (updatedBooking: Booking): Booking[] => {
   updateBookingAsync(updatedBooking).catch(console.error);
-  const updatedBookings = bookings.map(booking =>
-    booking.id === updatedBooking.id ? updatedBooking : booking
-  );
+  const updatedBookings = bookings.map(booking => booking.id === updatedBooking.id ? updatedBooking : booking);
   bookings = updatedBookings;
 
   // 通知订阅者
@@ -286,7 +277,7 @@ export const updateBooking = (updatedBooking: Booking): Booking[] => {
 };
 
 // Delete a booking (async version)
-export const deleteBookingAsync = async (bookingId: string): Promise<Booking[]> => {
+export const deleteBookingAsync = async(bookingId: string): Promise<Booking[]> => {
   try {
     await apiRequest(`/bookings/${bookingId}`, 'DELETE');
 
@@ -318,23 +309,23 @@ export const deleteBooking = (bookingId: string): Booking[] => {
 };
 
 // Get bookings by room and date
-export const getBookingsByRoomAndDate = async (
+export const getBookingsByRoomAndDate = async(
   roomId: string,
-  date: string
+  date: string,
 ): Promise<Booking[]> => {
   try {
     const fetchedBookings = await apiRequest<Booking[]>(
-      `/bookings/room/${roomId}/date/${date}`
+      `/bookings/room/${roomId}/date/${date}`,
     );
 
     // 更新本地缓存中该房间和日期的预订
     const otherBookings = bookings.filter(
-      b => !(b.roomId === roomId && b.date === date)
+      b => !(b.roomId === roomId && b.date === date),
     );
 
     bookings = [...otherBookings, ...fetchedBookings.map((booking: any) => ({
       ...booking,
-      createdAt: new Date(booking.createdAt)
+      createdAt: new Date(booking.createdAt),
     }))];
 
     return fetchedBookings;
@@ -348,7 +339,7 @@ export const getBookingsByRoomAndDate = async (
 // 同步版本的获取函数，用于向后兼容
 export const getBookingsByRoomAndDateSync = (
   roomId: string,
-  date: string
+  date: string,
 ): Booking[] => {
   getBookingsByRoomAndDate(roomId, date).catch(console.error);
   return bookings.filter(b => b.roomId === roomId && b.date === date);

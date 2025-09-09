@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import { initDb, closeDb } from './db';
-import router from './routes';
+import { initDb, closeDb } from './db.js';
+import router from './routes.js';
+import { initUserData } from './auth.js';
 
 const app = express();
 const PORT = 3001;
@@ -19,10 +20,13 @@ app.get('/', (req, res) => {
 });
 
 // 启动服务器
-const startServer = async () => {
+const startServer = async() => {
   try {
     // 初始化数据库
     await initDb();
+
+    // 初始化用户数据
+    await initUserData();
 
     // 启动服务器，监听所有网络接口，允许其他机器访问
     const server = app.listen(PORT, '0.0.0.0', () => {
@@ -32,7 +36,7 @@ const startServer = async () => {
     });
 
     // 优雅关闭
-    process.on('SIGINT', async () => {
+    process.on('SIGINT', async() => {
       await closeDb();
       server.close(() => {
         console.log('服务器已关闭');

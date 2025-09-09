@@ -1,10 +1,9 @@
 import { Booking } from '@/types';
-// 检测当前运行的端口
-const currentPort = window.location.port || '3000';
-// 定义是否显示取消按钮的条件（3000端口不显示，其他端口显示）
-const showCancelButton = currentPort === '3002';
+
 import { deleteBooking, deleteBookingAsync } from '@/lib/storageUtils';
 import { toast } from 'sonner';
+import { useContext } from 'react';
+import { AuthContext } from '@/contexts/authContext';
 
 interface BookingListProps {
   bookings: Booking[];
@@ -12,12 +11,13 @@ interface BookingListProps {
 }
 
 export default function BookingList({ bookings, onBookingUpdated }: BookingListProps) {
+  const { user } = useContext(AuthContext);
   // Sort bookings by start time
   const sortedBookings = [...bookings].sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   // 异步处理删除操作
   // 使用自定义确认对话框替代window.confirm
-  const handleDelete = async (id: string) => {
+  const handleDelete = async(id: string) => {
     if (window.confirm('确定要取消这个预定吗？此操作不可撤销。')) {
       try {
         // 使用异步删除函数
@@ -68,7 +68,8 @@ export default function BookingList({ bookings, onBookingUpdated }: BookingListP
               <div className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-sm font-medium">
                 {booking.startTime} - {booking.endTime}
               </div>
-              {showCancelButton && (
+
+              {user && booking.organizer === user.username && (
                 <button
                   onClick={() => handleDelete(booking.id)}
                   className="mt-2 text-red-500 hover:text-red-700 text-sm"
@@ -76,6 +77,7 @@ export default function BookingList({ bookings, onBookingUpdated }: BookingListP
                   <i className="fa-solid fa-trash-can mr-1"></i> 取消
                 </button>
               )}
+
             </div>
           </div>
         </div>

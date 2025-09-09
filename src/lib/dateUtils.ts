@@ -30,57 +30,53 @@ const timeToMinutes = (timeString: string): number => {
 
 // Generate time slots for a day (default 9 AM to 6 PM, 30 min intervals)
 export const generateTimeSlots = (
-  bookings: Booking[], 
-  roomId: string, 
+  bookings: Booking[],
+  roomId: string,
   date: string,
   startTime = '09:00',
   endTime = '19:00',
-  interval = 30
+  interval = 30,
 ): TimeSlot[] => {
   const slots: TimeSlot[] = [];
   const start = new Date(`2000-01-01T${startTime}`);
   const end = new Date(`2000-01-01T${endTime}`);
-  
+
   let current = new Date(start);
-  
+
   while (current < end) {
     const time = formatTime(current.toTimeString());
-    const booking = bookings.find(b => 
-      b.roomId === roomId && 
-      b.date === date && 
-      timeToMinutes(b.startTime) <= timeToMinutes(time) && 
-      timeToMinutes(b.endTime) >= timeToMinutes(time)
-    );
-    
+    const booking = bookings.find(b => b.roomId === roomId
+      && b.date === date
+      && timeToMinutes(b.startTime) <= timeToMinutes(time)
+      && timeToMinutes(b.endTime) >= timeToMinutes(time));
+
     slots.push({
       time,
       available: !booking,
-      bookingId: booking?.id
+      bookingId: booking?.id,
     });
-    
+
     current.setMinutes(current.getMinutes() + interval);
   }
-  
+
   return slots;
 };
 
 // Check if a time slot is available for booking
 // Allows a booking to end exactly when another booking starts
 export const isTimeSlotAvailable = (
-  bookings: Booking[], 
-  roomId: string, 
-  date: string, 
-  startTime: string, 
-  endTime: string
+  bookings: Booking[],
+  roomId: string,
+  date: string,
+  startTime: string,
+  endTime: string,
 ): boolean => {
-  return !bookings.some(booking => 
-    booking.roomId === roomId && 
-    booking.date === date && 
-    !( 
-      booking.endTime <= startTime || 
-      booking.startTime >= endTime
-    )
-  );
+  return !bookings.some(booking => booking.roomId === roomId
+    && booking.date === date
+    && !(
+      booking.endTime <= startTime
+      || booking.startTime >= endTime
+    ));
 };
 
 // Format date to a human-readable string (e.g., "Monday, August 25, 2025")
@@ -89,7 +85,7 @@ export const formatDateForDisplay = (dateString: string): string => {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   };
   return new Date(dateString).toLocaleDateString('zh-CN', options);
 };

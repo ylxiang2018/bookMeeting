@@ -1,11 +1,11 @@
 import { useState, useEffect, useContext } from 'react';
-import { MeetingRoom, Booking } from '@/types';
+import { MeetingRoom } from '@/types';
 import { generateTimeSlots, getToday } from '@/lib/dateUtils';
 import BookingList from './BookingList';
 import { getBookingsByRoomAndDate, getBookingsByRoomAndDateSync } from '@/lib/storageUtils';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { BookingContext } from '../contexts/bookingContext.jsx';
+import { BookingContext, BookingType } from '../contexts/bookingContext';
 
 interface RoomCardProps {
   room: MeetingRoom;
@@ -14,7 +14,9 @@ interface RoomCardProps {
   onOpenBookingModal: (room: MeetingRoom, timeSlots: any) => void;
 }
 
-export default function RoomCard({ room, date, onBookingUpdated, onOpenBookingModal }: RoomCardProps) {
+export default function RoomCard({
+  room, date, onBookingUpdated, onOpenBookingModal,
+}: RoomCardProps) {
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const { bookings } = useContext(BookingContext);
 
@@ -26,7 +28,7 @@ export default function RoomCard({ room, date, onBookingUpdated, onOpenBookingMo
   }, [bookings, room.id, date]);
 
   // 存储过滤后的预订
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<BookingType[]>([]);
 
   // 组件挂载时加载预订数据（如果需要）
   useEffect(() => {
