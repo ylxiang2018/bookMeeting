@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { AuthContext } from '@/contexts/authContext';
 import {
-  addBooking, addBookingAsync, checkBookingConflict, initializeBookings,
+  addBooking, addBookingAsync, checkBookingConflict,
 } from '@/lib/storageUtils';
-import React from 'react';
 import { cn } from '@/lib/utils';
+import React, { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 interface BookingFormProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ export default function BookingForm({
 }: BookingFormProps) {
   const [title, setTitle] = useState('');
   const [organizer, setOrganizer] = useState('');
+  const { user } = useContext(AuthContext);
 
   const [participantNames, setParticipantNames] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -45,11 +46,12 @@ export default function BookingForm({
     // Reset form when modal opens
     if (isOpen) {
       setTitle('');
-      setOrganizer('');
+      // 如果用户已登录，默认填充组织者为当前登录用户的用户名
+      setOrganizer(user?.username || '');
       setParticipantNames('');
       setErrors({});
     }
-  }, [isOpen]);
+  }, [isOpen, user?.username]);
 
   // Convert time string to minutes since midnight for accurate comparison
   const timeToMinutes = (timeString: string): number => {
@@ -64,8 +66,9 @@ export default function BookingForm({
       newErrors.title = '请输入会议标题';
     }
 
+    // 组织者默认为当前登录用户，不再需要验证
     if (!organizer.trim()) {
-      newErrors.organizer = '请输入组织者姓名';
+      newErrors.organizer = '请先登录';
     }
 
     if (!startTime || !endTime) {
@@ -181,21 +184,10 @@ export default function BookingForm({
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                组织者
+
               </label>
-              <input
-                type="text"
-                value={organizer}
-                onChange={(e) => setOrganizer(e.target.value)}
-                className={cn(
-                  'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2',
-                  errors.organizer ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500',
-                )}
-                placeholder="请输入您的姓名"
-              />
-              {errors.organizer && (
-                <p className="mt-1 text-sm text-red-500">{errors.organizer}</p>
-              )}
+              {/* 组织者默认为当前登录用户，不再显示输入框 */}
+              <input type="hidden" value={organizer} onChange={() => {}} />
             </div>
 
             <div className="mb-4">

@@ -1,6 +1,6 @@
-import { useState, useEffect, useContext } from 'react';
-import { TimeSlot } from '@/types';
 import { cn } from '@/lib/utils';
+import { TimeSlot } from '@/types';
+import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { BookingContext } from '../contexts/bookingContext';
 
@@ -210,10 +210,6 @@ export default function TimeSlotSelector({
             <div className="flex items-center">
               <div className="w-3 h-3 bg-blue-600 rounded-sm mr-1"></div>
               <span>选择的时间点</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-blue-100 rounded-sm mr-1"></div>
-              <span>选择的时间段</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-gray-100 rounded-sm mr-1"></div>

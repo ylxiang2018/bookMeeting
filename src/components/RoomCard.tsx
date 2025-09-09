@@ -1,11 +1,10 @@
-import { useState, useEffect, useContext } from 'react';
-import { MeetingRoom } from '@/types';
 import { generateTimeSlots, getToday } from '@/lib/dateUtils';
-import BookingList from './BookingList';
-import { getBookingsByRoomAndDate, getBookingsByRoomAndDateSync } from '@/lib/storageUtils';
-import { cn } from '@/lib/utils';
+import { MeetingRoom } from '@/types';
+import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { AuthContext } from '../contexts/authContext';
 import { BookingContext, BookingType } from '../contexts/bookingContext';
+import BookingList from './BookingList';
 
 interface RoomCardProps {
   room: MeetingRoom;
@@ -19,10 +18,13 @@ export default function RoomCard({
 }: RoomCardProps) {
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const { bookings } = useContext(BookingContext);
+  const { user } = useContext(AuthContext);
 
   // 当room、date或bookings变化时，生成时间槽
   useEffect(() => {
-    const filteredBookings = bookings.filter(booking => booking.roomId === room.id && booking.date === date);
+    const filteredBookings = bookings.filter(
+      booking => booking.roomId === room.id && booking.date === date,
+    );
     setTimeSlots(generateTimeSlots(filteredBookings, room.id, date));
     setFilteredBookings(filteredBookings);
   }, [bookings, room.id, date]);
@@ -36,6 +38,12 @@ export default function RoomCard({
   }, []);
 
   const handleOpenBookingModal = () => {
+    // 检查用户是否已登录
+    if (!user) {
+      toast.error('请先登录后再预订会议室', { dismissible: true });
+      return;
+    }
+
     // 检查是否是过去的日期
     const today = getToday();
     if (date < today) {
