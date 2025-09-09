@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
 import { AuthContext } from '@/contexts/authContext';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ChangePasswordPage = () => {
@@ -37,8 +37,10 @@ const ChangePasswordPage = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError('新密码长度至少为6个字符');
+    // 密码必须为6-8位数字或字母
+    const passwordRegex = /^[a-zA-Z0-9]{6,8}$/;
+    if (!passwordRegex.test(newPassword)) {
+      setError('新密码必须为6-8位数字或字母');
       return;
     }
 
@@ -128,7 +130,7 @@ const ChangePasswordPage = () => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md px-3 py-2"
-                  placeholder="请输入新密码（至少6个字符）"
+                  placeholder="请输入新密码（6-8位数字或字母）"
                 />
               </div>
             </div>

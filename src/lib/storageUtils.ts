@@ -1,5 +1,5 @@
-import { Booking } from '@/types';
 import initialBookings from '@/data/bookings.json';
+import { Booking } from '@/types';
 import { toast } from 'sonner';
 
 // API 基础URL
@@ -85,7 +85,7 @@ export const initializeBookings = async(): Promise<void> => {
       }));
 
       // 将初始数据保存到后端
-      for (const booking of bookings) {
+      bookings.forEach(async(booking) => {
         try {
           await apiRequest('/bookings', 'POST', {
             ...booking,
@@ -94,7 +94,7 @@ export const initializeBookings = async(): Promise<void> => {
         } catch (error) {
           console.error('保存初始数据失败:', error);
         }
-      }
+      });
     }
     isInitializing = true;
   } catch (error) {
