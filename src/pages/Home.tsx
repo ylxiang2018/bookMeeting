@@ -24,7 +24,10 @@ const MEETING_ROOMS: MeetingRoom[] = [
 ];
 
 export default function Home() {
-  const [selectedDate, setSelectedDate] = useState<string>(getToday());
+  // 从localStorage读取上次保存的日期，如果没有则使用今天的日期
+  const storedDate = localStorage.getItem('selectedMeetingDate');
+  const initialDate = storedDate ? storedDate : getToday();
+  const [selectedDate, setSelectedDate] = useState<string>(initialDate);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedRoom, setSelectedRoom] = useState<MeetingRoom | null>(null);
   const [timeSlots, setTimeSlots] = useState([]);
@@ -32,6 +35,11 @@ export default function Home() {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState<{ start: string; end: string } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // 当selectedDate变化时，保存到localStorage
+  useEffect(() => {
+    localStorage.setItem('selectedMeetingDate', selectedDate);
+  }, [selectedDate]);
 
   const { bookings: allBookings, setBookings } = useContext(BookingContext);
   const { user, logout } = useContext(AuthContext);
